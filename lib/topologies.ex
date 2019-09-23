@@ -15,6 +15,7 @@ defmodule Topologies do
     node_Id == 1 -> neighbour = [node_Id+1]
     node_Id == node_list_length -> neighbour = [node_Id-1]
     true -> neighbour = [node_Id+1, node_Id-1]
+    #Handle genserver call
   end
 end
 
