@@ -1,8 +1,15 @@
 defmodule Project2Test do
   use ExUnit.Case
-  doctest Project2
+  # doctest Project2
+  doctest Topo
 
-  test "greets the world" do
-    assert Project2.hello() == :world
+  test "Build random 2D" do
+   assert Topo.buildRand2D([10, 13, 14, 5, 19, 6, 20, 27, 22, 35, 15, 12]) == [1, 2, 3]
+
+    assert Topo.buildRand2D([16,83,39,53,45,60,32,62,92,87,30,9,9,83,83,99,75,90,87,45,26,93,60,35,46,24,98,14,36,86,8,64,84,7,98,37,79,2,71,5,52,100,96,37,93,63,94,93,24,14,5,48,58,95,6,36,81,62,46,5,99,4,7,76,30,73,26,6,64,44,32,7,70,70,59,71,76,55,51,29,29,60,68,32,21,58,27,14,94,82,8,70,31,58,59,49,28,13,51,49]) == [1, 2, 3, 4, 5]
   end
+
+
+
+
 end
