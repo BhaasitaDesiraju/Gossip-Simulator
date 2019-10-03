@@ -1,57 +1,60 @@
 defmodule Topologies do
 
   # Full Topology
-  def fullTopology(node_list) do
+  def fullTopology(nodeList) do
     #Delete current node from list of nodes
-    Enum.each(node_list, fn(x) ->
-    list_of_nodes = List.delete(node_list, x)
-    IO.inspect(list_of_nodes)
-    #handle GenServer call
+    Enum.each(nodeList, fn(x) ->
+    list_of_nodes = List.delete(nodeList, x)
+    #GenServer call
+    Project2.updateAdjList(x, list_of_nodes)
     end)
   end
 
   # Line Topology
-  def lineTopology(node_list) do
-  nodes_length = length(node_list)
+  def lineTopology(nodeList) do
+  nodes_length = length(nodeList)
   start_val = 0
   end_val = (nodes_length - 1)
-  Enum.each(node_list, fn(x) ->
-    index = Enum.find_index(node_list,fn(i) -> i==x end)
+  Enum.each(nodeList, fn(x) ->
+    index = Enum.find_index(nodeList,fn(i) -> i==x end)
     adjlist = []
     cond do
       index < end_val && index > start_val ->
-        n1 = Enum.at(node_list,index-1)
-        n2 = Enum.at(node_list,index+1)
+        n1 = Enum.at(nodeList,index-1)
+        n2 = Enum.at(nodeList,index+1)
         adjlist = adjlist ++ [n1,n2]
-        IO.inspect(adjlist)
+        # IO.inspect(adjlist)
         # Genserver call
+        Project2.updateAdjList(x, adjlist)
       index == start_val ->
-        n2 = Enum.at(node_list,index+1)
+        n2 = Enum.at(nodeList,index+1)
         adjlist = adjlist ++ [n2]
-        IO.inspect(adjlist)
+        # IO.inspect(adjlist)
         # Genserver call
+        Project2.updateAdjList(x, adjlist)
       true->
-        n1 = Enum.at(node_list,index-1)
+        n1 = Enum.at(nodeList,index-1)
         adjlist = adjlist ++ [n1]
-        IO.inspect(adjlist)
+        # IO.inspect(adjlist)
         # Genserver call
+        Project2.updateAdjList(x, adjlist)
     end
   end)
 end
 
-def create_array(length, list \\ []) do
-  if length == 0 do
-    list
+def create_array(listLength, nodeList \\ []) do
+  if listLength == 0 do
+    nodeList
 else
-  length-1 |> create_array([:rand.uniform() |> Float.round(2) | list])
+  listLength-1 |> create_array([:rand.uniform() |> Float.round(2) | nodeList])
 end
 end
 
-def createRandom2DCoordinates(nodes) do
-  length = Enum.count(nodes)
-  x = create_array(length)
-  y = create_array(length)
-  coordinates = Enum.zip(x, y)
+def createRandom2DCoordinates(nodeList) do
+  listLength = Enum.count(nodeList)
+  x = create_array(listLength)
+  y = create_array(listLength)
+  xycoordinates = Enum.zip(x, y)
 end
 
 def check_neighbours(c, p) do
@@ -67,36 +70,313 @@ def check_neighbours(c, p) do
   end
 end
 
-
-# ???? If an actor has no neighbours? - Then should we include it in gossip communication?
-#If yes, then how?
-
-# ???? Should we rearrange the position of the actor to involve it in the communication?
-
-#There cannot be actors without neighbours - placement should be such that each actor has neighbours
-
-#If an actor has no neighbours - then do not involve it in the communication and
-#also do not count the number of times
-#gossip is being circulated
-
-#Push sum has a terminating criteria for actors that donot actively communicate
-#this boundary condition has to be handled only for gossip
-
-def random2DTopology(nodes) do
-  list = createRandom2DCoordinates(nodes)
-  Enum.each(nodes, fn x ->
-    i = Enum.find_index(nodes, fn b -> b == x end)
+def random2DTopology(nodeList) do
+  list = createRandom2DCoordinates(nodeList)
+  Enum.each(nodeList, fn x ->
+    i = Enum.find_index(nodeList, fn b -> b == x end)
     c = Enum.fetch!(list, i)
-    num_nodes = Enum.count(nodes)
-    n_list = Enum.filter((0..num_nodes-1), fn y -> check_neighbours(c, Enum.at(list, y)) end)
-    adjlist = Enum.map_every(n_list, 1, fn x -> Enum.at(nodes, x) end)
-    IO.inspect adjlist, charlists: :as_lists
+    num_nodes = Enum.count(nodeList)
+    neighbourList = Enum.filter((0..num_nodes-1), fn y -> check_neighbours(c, Enum.at(list, y)) end)
+    adjlist = Enum.map_every(neighbourList, 1, fn x -> Enum.at(nodeList, x) end)
+    # IO.inspect adjlist, charlists: :as_lists
     # List.flatten(adjlist)
-    #Proj2.add_to_adjList(x,adjlist)
+    Project2.updateAdjList(x,adjlist)
   end)
 end
 
+#3D Start
+def buildtorus3D(nodelist) do
+  # totnodes = getPerfectCube(Enum.count(nodelist1))
+  # nodelist = Enum.slice(nodelist1, 1..totnodes)
+    totnodes = Enum.count(nodelist)
+    Enum.each(nodelist, fn(x) ->
+    neighborlist = []
+    index_node = Enum.find_index(nodelist, fn(y) -> y==x end)
 
+    #For all right plane nodes
+    neighborlist = if(rightplane(index_node, totnodes))do
+      neighbor1 = if(index_node - 1 >= 0) do
+        Enum.fetch!(nodelist,index_node - 1)
+      # else
+      #   []
+      end
+      neighborlist = neighborlist ++ [neighbor1]
+      tornode  = trunc(:math.pow(totnodes, 1/3)) - 1
+      neighbor2 = if(index_node - tornode >= 0) do
+        Enum.fetch!(nodelist,index_node - tornode)
+      # else
+      #   []
+      end
+      neighborlist = neighborlist ++ [neighbor2]
+      neighborlist
+    else
+      neighborlist
+    end
 
+    #For all left plane nodes
+    neighborlist = if(leftplane(index_node, totnodes))do
+      neighbor3 = if(index_node + 1 < totnodes) do
+         Enum.fetch!(nodelist,index_node + 1)
+      #  else
+      #    []
+       end
+      neighborlist = neighborlist ++ [neighbor3]
+      tornode  = trunc(:math.pow(totnodes, 1/3)) - 1
+      neighbor4 = if(index_node + tornode < totnodes) do
+        Enum.fetch!(nodelist,index_node + tornode)
+      # else
+      #   []
+      end
+      neighborlist = neighborlist ++ [neighbor4]
+      neighborlist
+    else
+      neighborlist
+    end
+
+    #For all nodes that are neither right nor left
+    neighborlist = if(!leftplane(index_node, totnodes) && !rightplane(index_node, totnodes))do
+      neighbor5 =  if(index_node-1 >= 0) do
+        Enum.fetch!(nodelist,index_node - 1)
+      # else
+      #   []
+      end
+      neighborlist = neighborlist ++ [neighbor5]
+      neighbor6 = if(index_node + 1 < totnodes) do
+        Enum.fetch!(nodelist,index_node + 1)
+      # else
+      #   []
+      end
+      neighborlist = neighborlist ++ [neighbor6]
+      neighborlist
+    else
+      neighborlist
+    end
+
+    #For all nodes in the top plane
+    neighborlist = if(topplane(index_node, totnodes)) do
+      finder = trunc(:math.pow(totnodes, 1/3))
+      finder = finder * finder
+      neighbor7 = if(index_node - finder >= 0) do
+         Enum.fetch!(nodelist,index_node - finder)
+      #  else
+      #    []
+       end
+      neighborlist = neighborlist ++ [neighbor7]
+      cuberoot = trunc(:math.pow(totnodes, 1/3))
+      square = cuberoot * cuberoot
+      layers = cuberoot - 1
+      tornode = square * layers
+      neighbor8 = if(index_node - tornode >= 0) do
+        Enum.fetch!(nodelist,index_node - tornode)
+      # else
+      #   []
+      end
+      neighborlist = neighborlist ++ [neighbor8]
+      neighborlist
+    else
+      neighborlist
+    end
+
+    #For all nodes in the bottom plane
+    neighborlist = if(bottomplane(index_node, totnodes)) do
+      finder = trunc(:math.pow(totnodes, 1/3))
+      finder = finder * finder
+      neighbor9 = if(index_node + finder < totnodes) do
+        Enum.fetch!(nodelist,index_node + finder)
+      # else
+      #   []
+      end
+      neighborlist = neighborlist ++ [neighbor9]
+      cuberoot = trunc(:math.pow(totnodes, 1/3))
+      square = cuberoot * cuberoot
+      layers = cuberoot - 1
+      tornode = square * layers
+      neighbor10 = if(index_node + tornode < totnodes) do
+        Enum.fetch!(nodelist,index_node + tornode)
+        # else
+        # []
+      end
+      neighborlist = neighborlist ++ [neighbor10]
+      neighborlist
+    else
+      neighborlist
+    end
+
+    #For all nodes that are neither top nor bottom nodes
+    neighborlist = if(!bottomplane(index_node, totnodes) && !topplane(index_node, totnodes)) do
+      finder = trunc(:math.pow(totnodes, 1/3))
+      finder = finder * finder
+      neighbor11 =  if(index_node + finder < totnodes) do
+        Enum.fetch!(nodelist,index_node + finder)
+      # else
+      #   []
+      end
+      neighborlist = neighborlist ++ [neighbor11]
+      neighbor12 = if(index_node - finder >= 0) do
+        Enum.fetch!(nodelist,index_node - finder)
+      # else
+      #   []
+      end
+      neighborlist = neighborlist ++ [neighbor12]
+      neighborlist
+    else
+      neighborlist
+    end
+
+    #For all nodes in the front plane
+    neighborlist = if(frontplane(index_node, totnodes)) do
+      finder = trunc(:math.pow(totnodes, 1/3))
+      neighbor13 =  if(index_node + finder <= totnodes) do
+        Enum.fetch!(nodelist,index_node + finder)
+      # else
+      #   []
+      end
+      neighborlist = neighborlist ++ [neighbor13]
+      cuberoot = trunc(:math.pow(totnodes, 1/3))
+      square = cuberoot * cuberoot
+      tornode = square - cuberoot
+      neighbor14 = if(index_node + tornode <= totnodes) do
+        Enum.fetch!(nodelist,index_node + tornode)
+      # else
+      #   []
+      end
+      neighborlist = neighborlist ++ [neighbor14]
+      neighborlist
+    else
+      neighborlist
+    end
+
+    #For all nodes in the back plane
+    neighborlist = if(backplane(index_node, totnodes)) do
+      finder = trunc(:math.pow(totnodes, 1/3))
+      neighbor15 =  if(index_node - finder >= 0) do
+        Enum.fetch!(nodelist,index_node - finder)
+      # else
+      #   []
+      end
+      neighborlist = neighborlist ++ [neighbor15]
+      cuberoot = trunc(:math.pow(totnodes, 1/3))
+      square = cuberoot * cuberoot
+      tornode = square - cuberoot
+      neighbor16 =  if(index_node - tornode >= 0) do
+        Enum.fetch!(nodelist,index_node - tornode)
+      # else
+      #   []
+      end
+      neighborlist = neighborlist ++ [neighbor16]
+      neighborlist
+    else
+      neighborlist
+    end
+
+    #For all the nodes that are neither in back nor front plane
+    neighborlist = if(!frontplane(index_node, totnodes) && !backplane(index_node, totnodes)) do
+      finder = trunc(:math.pow(totnodes, 1/3))
+      neighbor17 =  if(index_node - finder >= 0) do
+        Enum.fetch!(nodelist,index_node - finder)
+      # else
+      #   []
+      end
+      neighborlist = neighborlist ++ [neighbor17]
+      neighbor18 =  if(index_node + finder < totnodes) do
+        Enum.fetch!(nodelist,index_node + finder)
+      # else
+      #   []
+      end
+      neighborlist = neighborlist ++ [neighbor18]
+      neighborlist
+    else
+      neighborlist
+    end
+    # IO.inspect neighborlist, charlists: :as_lists
+    Project2.updateAdjList(x, Enum.filter(neighborlist, & !is_nil(&1)))
+end)
+end
+
+###############################################################################
+
+#To find all the nodes on the right plane
+def rightplane(index, totnodes) do
+  cuberoot = trunc(:math.pow(totnodes, 1/3))
+  square = cuberoot * cuberoot
+  pos = rem(index, square)
+  #return true for 3,6,9,12,15,18,21,24,27(extreme right) nodes
+  if(rem(pos+1, cuberoot)==0) do
+    true
+  else
+    false
+  end
+end
+
+#To find all the nodes on the left plane
+  def leftplane(index, totnodes) do
+    cuberoot = trunc(:math.pow(totnodes, 1/3))
+    square = cuberoot * cuberoot
+    pos = rem(index, square)
+    #return true for 1,4,7,10,13,16,19,22,25(extreme left) nodes
+    if(rem(pos, cuberoot)==0) do
+      true
+    else
+      false
+    end
+  end
+
+#To find all the nodes on the top plane
+def topplane(index, totnodes) do
+  cuberoot = trunc(:math.pow(totnodes, 1/3))
+  square = cuberoot * cuberoot
+  #return true for 19,20,21,22,23,24,25,26,27(extreme top) nodes
+  if(index + square >= totnodes) do
+    true
+  else
+    false
+  end
+end
+
+#To find all the nodes on the botton plane
+def bottomplane(index, totnodes) do
+  cuberoot = trunc(:math.pow(totnodes, 1/3))
+  square = cuberoot * cuberoot
+  #return true for 1,2,3,4,5,6,7,8,9(extreme bottom) nodes
+  if(index < square) do
+    true
+  else
+    false
+  end
+end
+
+#To find all the nodes on the front plane
+def frontplane(index, totnodes) do
+  cuberoot = trunc(:math.pow(totnodes, 1/3))
+  square = cuberoot * cuberoot
+  pos = rem(index, square)
+  #return true for 1,2,3,10,11,12,19,20,21(extreme front) nodes
+  if(pos < cuberoot) do
+    true
+  else
+    false
+  end
+end
+
+#To find all the nodes on the back plane
+def backplane(index, totnodes) do
+  cuberoot = trunc(:math.pow(totnodes, 1/3))
+  square = cuberoot * cuberoot
+  pos = rem(index, square)
+  #return true for 7,8,9,16,17,18,25,26,27 (extreme back) nodes
+  if(pos >= (square - cuberoot)) do
+    true
+  else
+    false
+  end
+end
+
+  # Project2.updateAdjList(x, neighborlist)
+  # def getPerfectCube(totnodes) do
+  #   cuberoot = trunc(:math.pow(totnodes, 1/3))
+  #   perfectCube = cuberoot * cuberoot * cuberoot
+  #   perfectCube
+  # end
+#3D End
 
 end
