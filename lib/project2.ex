@@ -7,34 +7,27 @@ defmodule Project2 do
     topology = Enum.at(args, 1)
     algorithm = Enum.at(args, 2)
 
-    numOfNodes = if(topology == "3DTorus") do
+    numOfNodes = cond do
+      topology == "3Dtorus" ->
       cuberoot = trunc(:math.pow(numOfNodes, 1/3))
       numOfNodes = cuberoot * cuberoot * cuberoot
-    else
+      topology == "honeycomb" || topology == "randhoneycomb" ->
+      sqroot = trunc(:math.pow(numOfNodes, 1/2))
+      numOfNodes = sqroot * sqroot
+      true ->
       numOfNodes
     end
     nodeList = createNodes(numOfNodes)
-
-    # newNodeList =
-    #   if topology == "3DTorus" do
-    #     newNodeList = Enum.map(0..(numOfNodes - 1), fn x ->
-    #       GenServer.call(Enum.fetch!(nodeList, x), {:AllotProcessId, x+1})
-    #       Enum.fetch!(nodeList, x)
-    #     end)
-    #   else
-    #   end
 
     table = :ets.new(:table, [:named_table, :public])
     :ets.insert(table, {"convergence_count", 0})
 
     buildNetworkTopology(topology, nodeList)
     startTime = System.monotonic_time(:millisecond)
-    # if topology == "3DTorus" do
-    #   startAlgo(newNodeList, startTime, algorithm)
-    # else
+
     startAlgo(nodeList, startTime, algorithm)
-    # end
     infiniteLoop()
+
     # else
     #   IO.puts"Please provide input in the following format: numOfNodes topology algorithm"
     #   System.halt(1)
@@ -52,7 +45,7 @@ defmodule Project2 do
   def startAlgo(nodeList, startTime, algo) do
     case algo do
       "gossip" -> gossip(nodeList, startTime)
-      "pushSum" -> pushSum(nodeList, startTime)
+      "push-sum" -> pushSum(nodeList, startTime)
     end
   end
 
@@ -61,8 +54,10 @@ defmodule Project2 do
     case topology do
       "full" -> Topologies.fullTopology(nodeList)
       "line" -> Topologies.lineTopology(nodeList)
-      "random2D" -> Topologies.random2DTopology(nodeList)
-      "3DTorus" -> Topologies.buildtorus3D(nodeList)
+      "rand2D" -> Topologies.random2DTopology(nodeList)
+      "3Dtorus" -> Topologies.buildtorus3D(nodeList)
+      "honeycomb" -> Topologies.buildhoneycomb(nodeList)
+      "randhoneycomb" -> Randhoneycomb.buildrandhoneycomb(nodeList)
     end
   end
 

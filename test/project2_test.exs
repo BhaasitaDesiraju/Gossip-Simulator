@@ -1,8 +1,9 @@
 defmodule Project2Test do
   use ExUnit.Case
   # doctest Project2
-  doctest Topologies
-  doctest Torus3D
+  # doctest Topologies
+  # doctest Honeycomb
+  doctest Honey
 
   # test "Build random 2D" do
   # #  assert Topo.random2DTopology([10, 13, 14, 5, 19, 6, 20, 27, 22, 35, 15, 12]) == [1, 2, 3]
@@ -26,5 +27,13 @@ defmodule Project2Test do
   # test "Full" do
     # assert Topologies.fullTopology([1,2,3,4,5,6,7,8,9,10]) == [1,2,3]
   # end
+
+  # test "Honeycomb" do
+  #   assert Honeycomb.buildhoneycomb([1,2,3,4,5,6,7,8,9]) == [1,2,3,4,5,6,7,8,9]
+  # end
+
+  test "Test" do
+    assert Honey.loopi([],2,5) == [2,2,2,2,2]
+  end
 
 end
