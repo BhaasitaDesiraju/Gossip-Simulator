@@ -97,6 +97,7 @@ defmodule Project2 do
   end
 
 #   #Gossip - Client - Rumor count updater
+  @spec updateRumorCount(atom | pid | {atom, any} | {:via, atom, any}, any, any) :: :ok
   def updateRumorCount(processId, startTime, listLength) do
     GenServer.cast(processId, {:UpdateRumorCount, startTime, listLength})
   end

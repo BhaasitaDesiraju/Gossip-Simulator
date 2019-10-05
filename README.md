@@ -1,14 +1,14 @@
-GossipSim - Gossip Simulator
+# Project 2 - Gossip Simulator
 
-Group Members
-Ananda Bhaasita Desiraju
-Nidhi Sharma
+## Group Members
+Ananda Bhaasita Desiraju - UFID: 40811191
+Nidhi Sharma - UFID: 68431215
 
-Algorithms
+## Algorithms
 Gossip
 Push Sum
 
-Working Topologies
+## Working Topologies
 Line
 Fully Connected Network
 Random 2D
@@ -16,22 +16,31 @@ Random 2D
 Honeycomb
 Random Honeycomb
 
-Execution Instructions
-Compile and Build
+## Execution Instructions
+To Compile and Build:
 mix compile
 mix run
 mix escript.build
-Execute
-escript numNodes topology algorithm
+To Execute:
+escript project2 numNodes topology algorithm
 
-numNodes Integer
+## Arguments
 topology: line/full/rand2D/3Dtorus/honeycomb/randhoneycomb
 algorithm: gossip/push-sum
 
-Observations for largest network
-Line
-Full
-Random 2D
-3D Torus
-Honeycomb
-Random Honeycomb
+## Observations for largest network
+### Gossip
+Line - 9000
+Full - 10000
+Random 2D -5000
+3D Torus - 100000
+Honeycomb - 10000
+Random Honeycomb - 10000
+
+### Push Sum
+Line - 500
+Full - 5000
+Random 2D - 2500
+3D Torus - 10000
+Honeycomb - 2500
+Random Honeycomb - 30000

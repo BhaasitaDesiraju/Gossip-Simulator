@@ -60,11 +60,11 @@ defmodule Topologies do
     xycoordinates = Enum.zip(x, y)
   end
 
-  def check_neighbours(c, p) do
-    {a, b} = p
-    {p, q} = c
-    first = :math.pow(a - p, 2)
-    last = :math.pow(b - q, 2)
+  def check_neighbours(node1, node2) do
+    {neighbor1, neighbor2} = node2
+    {node2, node3} = node1
+    first = :math.pow(neighbor1 - node2, 2)
+    last = :math.pow(neighbor2 - node3, 2)
     radii = :math.pow(first + last, 1 / 2)
 
     if radii <= 0.1 and radii > 0 do
